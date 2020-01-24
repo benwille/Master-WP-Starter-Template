@@ -17,6 +17,7 @@ var del = require('del');
 var cleanCSS = require('gulp-clean-css');
 var gulpSequence = require('gulp-sequence');
 var replace = require('gulp-replace');
+var strreplace = require('gulp-string-replace');
 var autoprefixer = require('autoprefixer');
 var wppot = require('gulp-wp-pot');
 
@@ -373,3 +374,12 @@ gulp.task('compile', gulp.series('styles', 'scripts', 'dist'));
 // gulp
 // Starts watcher (default task)
 gulp.task('default', gulp.series('watch'));
+
+/**
+ * Create zip archive from generated theme files.
+ */
+gulp.task('bundle', function() {
+	return gulp.src([paths.dist + '/**'])
+	.pipe(zip(cfg.theme.slug + '.zip'), gulp.dest(paths.theme + cfg.theme.slug))
+	.pipe(gulp.dest(paths.theme));
+});

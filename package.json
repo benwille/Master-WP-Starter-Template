@@ -56,6 +56,7 @@
     "gulp-babel": "^8.0.0",
     "gulp-postcss": "^8.0.0",
     "gulp-string-replace": "^1.1.2",
-    "gulp-wp-pot": "^2.3.5"
+    "gulp-wp-pot": "^2.3.5",
+    "gulp-zip": "^4.1.0",
   }
 }

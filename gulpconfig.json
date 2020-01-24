@@ -15,7 +15,9 @@
 		"dev": "./src",
 		"dist": "./dist",
 		"distprod": "./dist-product",
-		"vendor": ""
+		"vendor": "",
+		"theme": "./",
+		"languages": ["./**/*.php", "!dist/**/*.php"]
 	},
 	"theme": {
 		"slug": "",
