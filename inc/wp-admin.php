@@ -6,66 +6,86 @@
  */
 
 
-/* UnderStrap news dashboard widget */
+/* Hide Sidebar Menu for non-Admins */
+
+function understrap_hide_menu() {
+	if (!current_user_can('manage_options')) {
+		remove_menu_page( 'edit.php?post_type=acf-field-group' );					//acf
+		remove_menu_page( 'options-general.php' );												//settings
+		remove_menu_page( 'tools.php' );																	//tools
+		remove_menu_page( 'plugins.php');																	//plugins
+		remove_menu_page( 'themes.php' );																	//appearance
+		remove_menu_page( 'smush' );												              //smush
+    remove_menu_page( 'wpseo_dashboard' );						               	//yoast
+	}
+}
+// add_action('admin_menu', 'understrap_hide_menu', 999);
+
+/* Remove Admin Notices */
+
+function understrap_remove_admin_notices() {
+    global $wp_filter;
+    if (current_user_can('manage_options')) {
+        return;
+    } elseif (isset($wp_filter['admin_notices'])) {
+        unset($wp_filter['admin_notices']);
+    }
+    if (isset($wp_filter['all_admin_notices'])) {
+        unset($wp_filter['all_admin_notices']);
+    }
+}
+// add_action('admin_print_scripts', 'understrap_remove_admin_notices');
+
+/* Remove all dashboard metaboxes */
+
+function understrap_remove_all_dashboard_metaboxes() {
+    remove_action( 'welcome_panel', 'wp_welcome_panel' );
+    remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+    remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+    remove_meta_box( 'health_check_status', 'dashboard', 'normal' );
+    remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+    remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');
+    remove_meta_box( 'wpseo-dashboard-overview', 'dashboard', 'normal');
+}
+// add_action( 'wp_dashboard_setup', 'understrap_remove_all_dashboard_metaboxes' );
+
+/* UnderStrap support dashboard widget */
 
 add_action( 'wp_dashboard_setup', 'understrap_dashboard_news_meta_box' );
 
 function understrap_dashboard_news_meta_box(){
-  add_meta_box('understrap-news', 'UnderStrap News', 'understrap_news_widget_render', 'dashboard', 'side', 'high' );
+  wp_add_dashboard_widget('understrap-support', 'UnderStrap Theme Support', 'understrap_support_widget_render', 'dashboard', 'normal', 'high' );
 }
 
-function understrap_news_widget_render(){
-  include_once(ABSPATH.WPINC."/feed.php");
-  $understrap_news_last_checked = get_option('understrap_news_last_checked');
-  $understrap_news_url = 'https://understrap.com/feed/';
-  $this_site_parsed = parse_url(get_site_url());
-  if(!$understrap_news_last_checked){$understrap_news_url.='?fi_ti='.$this_site_parsed['host'];update_option('understrap_news_last_checked', time());}
-	$rss = fetch_feed($understrap_news_url);
-  $maxitems = $rss->get_item_quantity(5); 
-  $rss_items = $rss->get_items(0, $maxitems);
-	?>
-<style>
-  .understrap_news_feed li {
-    border-top: 1px solid #eee;
-    padding-top: 14px;
-  }
-  .understrap_news_feed li:last-child {
-    border-bottom: 1px solid #eee;
-  }
-  .understrap_news_feed li .wordpress-feed__post-link {
-    font-size: 16px;
-  }
-  .understrap_news_feed li p {
-    margin-top: 0.65rem;
-  }
-  .understrap_news_feed .feed_item_0 a {
-    color: #2c9600;
-    font-weight: 600;
-  }
-</style>
-<div class="wordpress-feed understrap_news_feed">
-  <h3 class="wordpress-feed__header"><em>Latest blog posts on UnderStrap.com</em></h3>
-  <ul class="wordpress-feed__posts" role="list">
-    <?php
-      if($maxitems == 0){
-        echo "<li>No items</li>";
-      } else {
-        foreach($rss_items as $feed_count => $item){
-          $the_description = strip_tags($item->get_description());
-        ?>
-        <li class="wordpress-feed__post feed_item_<?php echo $feed_count; ?>">
-          <a class="wordpress-feed__post-link" href="<?php echo esc_url($item->get_permalink()); ?>?swpdb=27" target="_blank"><span class="dashicons dashicons-admin-post"></span> <?php echo esc_html($item->get_title()); ?></a>
-          <?php if($feed_count == 0){ echo '<small>NEW</small>';} ?>
-          <p class="wordpress-feed__post-description">
-            <?php echo trim(substr($the_description, 0, 140)).'... <a href="'.esc_url($item->get_permalink()).'"><small>Read More</small></a>'; ?>
-          </p>
-        </li>
-        <?php
-        }
-      } ?>
-  </ul>
-  <div class="wordpress-feed__footer">
-    <a class="wordpress-feed__footer-link" href="http://understrap.com/blog/?swpdb=27" target="_blank">Read more like this On UnderStrap.com</a></div>
+function understrap_support_widget_render(){ ?>
+  <div>
+    <p>Welcome to Understrap Theme! Need help? Contact the developer <a href="mailto:THEME_DEVELOPER_EMAIL">here</a>.</p>
+    <p>For help on your custom theme, try one of the links below:
+      <ul>
+        THEME_SUPPORT_LINKS
+      </ul>
+    </p>
+    <p>THEME_SUPPORT_NOTES</p>
   </div>
+  <style>
+    .understrap_news_feed li {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+    }
+    .understrap_news_feed li:last-child {
+      border-bottom: 1px solid #eee;
+    }
+    .understrap_news_feed li .wordpress-feed__post-link {
+      font-size: 16px;
+    }
+    .understrap_news_feed li p {
+      margin-top: 0.65rem;
+    }
+    .understrap_news_feed .feed_item_0 a {
+      color: #2c9600;
+      font-weight: 600;
+    }
+  </style>
+
 	<?php
 }

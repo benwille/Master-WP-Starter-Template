@@ -333,6 +333,9 @@ gulp.task(
 			)
 			.pipe(strreplace('understrap', cfg.theme.slug))
 			.pipe(strreplace('UnderStrap', cfg.theme.name))
+			.pipe(strreplace('THEME_DEVELOPER_EMAIL', cfg.support.email))
+			.pipe(strreplace('THEME_SUPPORT_LINKS', cfg.support.links))
+			.pipe(strreplace('THEME_SUPPORT_NOTES', cfg.support.notes))
 			.pipe(gulp.dest(paths.dist));
 	})
 );
