@@ -133,3 +133,13 @@ if ( ! function_exists( 'understrap_mobile_web_app_meta' ) ) {
 	}
 }
 add_action( 'wp_head', 'understrap_mobile_web_app_meta' );
+
+if ( ! function_exists( 'understrap_customizer_header_scripts' ) ) {
+	/**
+	 * Custom header scripts.
+	 */
+	function understrap_customizer_header_scripts() {
+		echo get_theme_mod( 'understrap_header_scripts' );
+	}
+}
+add_action( 'wp_head', 'understrap_customizer_header_scripts' );

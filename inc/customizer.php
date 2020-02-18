@@ -46,6 +46,17 @@ if ( ! function_exists( 'understrap_theme_customize_register' ) ) {
 			)
 		);
 
+		// Theme settings.
+		$wp_customize->add_section(
+			'understrap_theme_settings',
+			array(
+				'title'       => __( 'Theme Settings', 'understrap' ),
+				'capability'  => 'edit_theme_options',
+				'description' => __( 'Misc theme settings.', 'understrap' ),
+				'priority'    => 160,
+			)
+		);
+
 		/**
 		 * Select sanitization function
 		 *
@@ -126,6 +137,29 @@ if ( ! function_exists( 'understrap_theme_customize_register' ) ) {
 						'none'  => __( 'No sidebar', 'understrap' ),
 					),
 					'priority'          => '20',
+				)
+			)
+		);
+
+		$wp_customize->add_setting(
+			'understrap_header_scripts',
+			array(
+				'default'           => '',
+				'type'              => 'theme_mod',
+				'capability'        => 'edit_theme_options',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WP_Customize_Control(
+				$wp_customize,
+				'understrap_header_scripts',
+				array(
+					'label'       => __( 'Header Scripts', 'understrap' ),
+					'description' => __( 'extra scripts that should go in the <head> section', 'understrap' ),
+					'section'     => 'understrap_theme_settings',
+					'type'        => 'textarea',
+					'priority'    => '10',
 				)
 			)
 		);
