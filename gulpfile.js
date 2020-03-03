@@ -20,6 +20,8 @@ var replace = require('gulp-replace');
 var strreplace = require('gulp-string-replace');
 var autoprefixer = require('autoprefixer');
 var wppot = require('gulp-wp-pot');
+var zip = require('gulp-zip');
+
 
 // Configuration file to keep your code DRY
 var cfg = require('./gulpconfig.json');
@@ -137,13 +139,9 @@ gulp.task('styles', function(callback) {
 	gulp.series('sass', 'minifycss')(callback);
 });
 
-gulp.task('rename', function() {
-	return gulp.src(paths.theme + 'style.css')
-	.pipe(rename({ suffix: '.new' }))
-	.pipe(strreplace('understrap', 'sorenson'))
-	.pipe(strreplace('UnderStrap', 'Sorenson Legacy Foundation'))
-	.pipe(gulp.dest(paths.theme));
-
+gulp.task('fonts', function() {
+	return gulp.src(paths.theme + 'fonts/**.*')
+	.pipe(gulp.dest(paths.dist + '/fonts/'));
 });
 
 // Run:
@@ -371,7 +369,7 @@ gulp.task(
 // Run
 // gulp compile
 // Compiles the styles and scripts and runs the dist task
-gulp.task('compile', gulp.series('styles', 'scripts', 'dist'));
+gulp.task('compile', gulp.series('styles', 'scripts', 'dist', 'fonts'));
 
 // Run:
 // gulp
