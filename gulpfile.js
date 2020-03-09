@@ -258,6 +258,11 @@ gulp.task('clean-dist', function() {
 	return del([paths.dist + '/**']);
 });
 
+// Delete empty folders from /dist folder
+gulp.task('clean-empty', function() {
+	return del([paths.dist + '/node_modules', paths.dist + '/sass', paths.dist + '/src']);
+})
+
 // Run
 // gulp translate
 // Generate translation files.
@@ -369,7 +374,7 @@ gulp.task(
 // Run
 // gulp compile
 // Compiles the styles and scripts and runs the dist task
-gulp.task('compile', gulp.series('styles', 'scripts', 'dist', 'fonts'));
+gulp.task('compile', gulp.series('styles', 'scripts', 'dist', 'fonts', 'clean-empty'));
 
 // Run:
 // gulp
