@@ -21,6 +21,7 @@ var strreplace = require('gulp-string-replace');
 var autoprefixer = require('autoprefixer');
 var wppot = require('gulp-wp-pot');
 var zip = require('gulp-zip');
+var purgecss = require('gulp-purgecss');
 
 
 // Configuration file to keep your code DRY
@@ -137,6 +138,26 @@ gulp.task('cleancss', function() {
 
 gulp.task('styles', function(callback) {
 	gulp.series('sass', 'minifycss')(callback);
+});
+
+gulp.task('purgecss', function() {
+	return gulp.src('dist/css/*.css')
+		.pipe(purgecss({
+			content: ['dist/**/*.php', '!dist/vendor/', '!dist/woocommerce/']
+		}))
+		.pipe(gulp.dest('dist/css'))
+});
+
+gulp.task('purgecss-rejected', function() {
+	return gulp.src('css/theme.css')
+		.pipe(rename({
+			suffix: '.rejected'
+		}))
+		.pipe(purgecss({
+			content: ['**/*.php', '!node_modules/', '!sass/', '!src/', '!vendor/', '!woocommerce/', '!dist/'],
+			rejected: true
+		}))
+		.pipe(gulp.dest('css'))
 });
 
 gulp.task('fonts', function() {
@@ -374,7 +395,7 @@ gulp.task(
 // Run
 // gulp compile
 // Compiles the styles and scripts and runs the dist task
-gulp.task('compile', gulp.series('styles', 'scripts', 'dist', 'fonts', 'clean-empty'));
+gulp.task('compile', gulp.series('styles', 'scripts', 'dist', 'fonts', 'clean-empty', 'purgecss'));
 
 // Run:
 // gulp
