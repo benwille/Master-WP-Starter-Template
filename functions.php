@@ -26,6 +26,7 @@ $understrap_includes = array(
 	'/wp-admin.php',                        // /wp-admin/ related functions
 	'/deprecated.php',                      // Load deprecated functions.
 	// '/custom-fonts.php',										// Load custom fonts
+	// '/post-types.php',											// Load custom post types
 );
 
 foreach ( $understrap_includes as $file ) {

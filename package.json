@@ -58,6 +58,6 @@
     "gulp-purgecss": "^2.1.0",
     "gulp-string-replace": "^1.1.2",
     "gulp-wp-pot": "^2.3.5",
-    "gulp-zip": "^4.1.0",
+    "gulp-zip": "^4.1.0"
   }
 }

@@ -7,7 +7,7 @@
 	"paths": {
 		"js": "./js",
 		"css": "./css",
-		"img": "./img",
+		"img": "./images",
 		"imgsrc": "./src/img",
 		"sass": "./sass",
 		"node": "./node_modules/",
@@ -15,7 +15,7 @@
 		"dev": "./src",
 		"dist": "./dist",
 		"distprod": "./dist-product",
-		"vendor": "",
+		"vendor": "./vendor",
 		"theme": "./",
 		"languages": ["./**/*.php", "!dist/**/*.php"]
 	},
