@@ -22,6 +22,7 @@ var autoprefixer = require("autoprefixer");
 var wppot = require("gulp-wp-pot");
 var zip = require("gulp-zip");
 var purgecss = require("gulp-purgecss");
+var removeCode = require("gulp-remove-code");
 
 // Configuration file to keep your code DRY
 var cfg = require("./gulpconfig.json");
@@ -170,6 +171,13 @@ gulp.task("purgecss-rejected", function () {
 			})
 		)
 		.pipe(gulp.dest("css"));
+});
+
+gulp.task("remove-dev-code", function () {
+	return gulp
+		.src(["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"])
+		.pipe(removeCode({ production: true }))
+		.pipe(gulp.dest("dist"));
 });
 
 gulp.task("fonts", function () {
@@ -431,6 +439,7 @@ gulp.task(
 		"fonts",
 		"images",
 		"clean-empty",
+		"purgecss",
 		"purgecss"
 	)
 );

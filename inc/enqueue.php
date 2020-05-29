@@ -31,3 +31,20 @@ if ( ! function_exists( 'understrap_scripts' ) ) {
 } // endif function_exists( 'understrap_scripts' ).
 
 add_action( 'wp_enqueue_scripts', 'understrap_scripts' );
+
+if ( ! function_exists( 'understrap_admin_scripts' ) ) {
+	/**
+	 * Load wp_admin JavaScript and CSS sources.
+	 */
+	function understrap_admin_scripts() {
+		// Get the theme data.
+		$the_theme     = wp_get_theme();
+		$theme_version = $the_theme->get( 'Version' );
+
+		$css_version = $theme_version . '.' . filemtime( get_template_directory() . '/css/custom-editor-sytle.css' );
+		wp_enqueue_style( 'understrap-styles', get_template_directory_uri() . '/css/custom-editor-style.css', array(), $css_version );
+
+	}
+} // endif function_exists( 'understrap_scripts' ).
+
+add_action( 'admin_init', 'understrap_admin_scripts' );
