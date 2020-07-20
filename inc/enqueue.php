@@ -41,8 +41,9 @@ if ( ! function_exists( 'understrap_admin_scripts' ) ) {
 		$the_theme     = wp_get_theme();
 		$theme_version = $the_theme->get( 'Version' );
 
-		$css_version = $theme_version . '.' . filemtime( get_template_directory() . '/css/custom-editor-sytle.css' );
-		wp_enqueue_style( 'understrap-styles', get_template_directory_uri() . '/css/custom-editor-style.css', array(), $css_version );
+		// $css_version = $theme_version . '.' . filemtime( get_template_directory() . '/css/custom-editor-sytle.min.css' );
+		$css_version = $theme_version . '.' . date('U');
+		wp_enqueue_style( 'understrap-styles', get_template_directory_uri() . '/css/custom-editor-style.min.css', array(), $css_version );
 
 	}
 } // endif function_exists( 'understrap_scripts' ).

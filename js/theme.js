@@ -253,9 +253,7 @@
 
   };
 
-  var Alert =
-  /*#__PURE__*/
-  function () {
+  var Alert = /*#__PURE__*/function () {
     function Alert(element) {
       this._element = element;
     } // Getters
@@ -420,9 +418,7 @@
 
   };
 
-  var Button =
-  /*#__PURE__*/
-  function () {
+  var Button = /*#__PURE__*/function () {
     function Button(element) {
       this._element = element;
     } // Getters
@@ -626,9 +622,7 @@
 
   };
 
-  var Carousel =
-  /*#__PURE__*/
-  function () {
+  var Carousel = /*#__PURE__*/function () {
     function Carousel(element, config) {
       this._items = null;
       this._interval = null;
@@ -1185,9 +1179,7 @@
 
   };
 
-  var Collapse =
-  /*#__PURE__*/
-  function () {
+  var Collapse = /*#__PURE__*/function () {
     function Collapse(element, config) {
       this._isTransitioning = false;
       this._element = element;
@@ -4157,9 +4149,7 @@
 
   };
 
-  var Dropdown =
-  /*#__PURE__*/
-  function () {
+  var Dropdown = /*#__PURE__*/function () {
     function Dropdown(element, config) {
       this._element = element;
       this._popper = null;
@@ -4393,9 +4383,9 @@
           },
           preventOverflow: {
             boundariesElement: this._config.boundary
-          } // Disable Popper.js if we have a static display
+          }
+        } // Disable Popper.js if we have a static display
 
-        }
       };
 
       if (this._config.display === 'static') {
@@ -4661,9 +4651,7 @@
 
   };
 
-  var Modal =
-  /*#__PURE__*/
-  function () {
+  var Modal = /*#__PURE__*/function () {
     function Modal(element, config) {
       this._config = this._getConfig(config);
       this._element = element;
@@ -5395,9 +5383,7 @@
 
   };
 
-  var Tooltip =
-  /*#__PURE__*/
-  function () {
+  var Tooltip = /*#__PURE__*/function () {
     function Tooltip(element, config) {
       /**
        * Check for Popper dependency
@@ -6070,9 +6056,7 @@
 
   };
 
-  var Popover =
-  /*#__PURE__*/
-  function (_Tooltip) {
+  var Popover = /*#__PURE__*/function (_Tooltip) {
     _inheritsLoose(Popover, _Tooltip);
 
     function Popover() {
@@ -6258,9 +6242,7 @@
 
   };
 
-  var ScrollSpy =
-  /*#__PURE__*/
-  function () {
+  var ScrollSpy = /*#__PURE__*/function () {
     function ScrollSpy(element, config) {
       var _this = this;
 
@@ -6552,9 +6534,7 @@
 
   };
 
-  var Tab =
-  /*#__PURE__*/
-  function () {
+  var Tab = /*#__PURE__*/function () {
     function Tab(element) {
       this._element = element;
     } // Getters
@@ -6788,9 +6768,7 @@
 
   };
 
-  var Toast =
-  /*#__PURE__*/
-  function () {
+  var Toast = /*#__PURE__*/function () {
     function Toast(element, config) {
       this._element = element;
       this._config = this._getConfig(config);
@@ -6998,6 +6976,511 @@
     value: true
   });
 });
+jQuery($ => {
+  class Forms {
+    constructor() {
+      this.inputSelector = `${['text', 'password', 'email', 'url', 'tel', 'number', 'search', 'search-md'].map(selector => `input[type=${selector}]`).join(', ')}, textarea`;
+      this.textAreaSelector = '.materialize-textarea';
+      this.$text = $('.md-textarea-auto');
+      this.$body = $('body');
+      this.$document = $(document);
+    }
+
+    init() {
+      if (this.$text.length) {
+        let observe;
+
+        if (window.attachEvent) {
+          observe = function (element, event, handler) {
+            element.attachEvent(`on${event}`, handler);
+          };
+        } else {
+          observe = function (element, event, handler) {
+            element.addEventListener(event, handler, false);
+          };
+        }
+
+        this.$text.each(function () {
+          const self = this;
+
+          function resize() {
+            self.style.height = 'auto';
+            self.style.height = `${self.scrollHeight}px`;
+          }
+
+          function delayedResize() {
+            window.setTimeout(resize, 0);
+          }
+
+          observe(self, 'change', resize);
+          observe(self, 'cut', delayedResize);
+          observe(self, 'paste', delayedResize);
+          observe(self, 'drop', delayedResize);
+          observe(self, 'keydown', delayedResize);
+          resize();
+        });
+      }
+
+      $(this.inputSelector).each((index, input) => {
+        const $this = $(input);
+        const isNotValid = input.validity.badInput;
+        this.updateTextFields($this);
+
+        if (isNotValid) {
+          this.toggleActiveClass($this, 'add');
+        }
+      });
+      this.addOnFocusEvent();
+      this.addOnBlurEvent();
+      this.addOnChangeEvent();
+      this.addOnResetEvent();
+      this.appendHiddenDiv();
+      this.ChangeDateInputType();
+      this.makeActiveAutofocus();
+      $(this.textAreaSelector).each(this.textAreaAutoResize);
+      this.$body.on('keyup keydown', this.textAreaSelector, this.textAreaAutoResize);
+    }
+
+    makeActiveAutofocus() {
+      this.toggleActiveClass($('input[autofocus]'), 'add');
+    }
+
+    toggleActiveClass($this, action) {
+      let selectors;
+      action = `${action}Class`;
+
+      if ($this.parent().hasClass('timepicker')) {
+        selectors = 'label';
+      } else {
+        selectors = 'label, i, .input-prefix';
+      }
+
+      $this.siblings(selectors)[action]('active');
+    }
+
+    addOnFocusEvent() {
+      this.$document.on('focus', this.inputSelector, e => {
+        this.toggleActiveClass($(e.target), 'add');
+      });
+    }
+
+    addOnBlurEvent() {
+      this.$document.on('blur', this.inputSelector, e => {
+        const $this = $(e.target);
+        const noValue = !$this.val();
+        const isValid = !e.target.validity.badInput;
+        const noPlaceholder = $this.attr('placeholder') === undefined;
+
+        if (noValue && isValid && noPlaceholder) {
+          this.toggleActiveClass($this, 'remove');
+        }
+
+        if (!noValue && isValid && noPlaceholder) {
+          $this.siblings('i, .input-prefix').removeClass('active');
+        }
+
+        this.validateField($this);
+      });
+    }
+
+    addOnChangeEvent() {
+      this.$document.on('change', this.inputSelector, e => {
+        const $this = $(e.target);
+        this.updateTextFields($this);
+        this.validateField($this);
+      });
+    }
+
+    addOnResetEvent() {
+      this.$document.on('reset', e => {
+        const $formReset = $(e.target);
+
+        if ($formReset.is('form')) {
+          const $formInputs = $formReset.find(this.inputSelector);
+          $formInputs.removeClass('valid invalid').each((index, input) => {
+            const $this = $(input);
+            const noDefaultValue = !$this.val();
+            const noPlaceholder = !$this.attr('placeholder');
+
+            if (noDefaultValue && noPlaceholder) {
+              this.toggleActiveClass($this, 'remove');
+            }
+          });
+          $formReset.find('select.initialized').each((index, select) => {
+            const $select = $(select);
+            const $visibleInput = $select.siblings('input.select-dropdown');
+            const defaultValue = $select.children('[selected]').val();
+            $select.val(defaultValue);
+            $visibleInput.val(defaultValue);
+          });
+        }
+      });
+    }
+
+    appendHiddenDiv() {
+      if (!$('.hiddendiv').first().length) {
+        const $hiddenDiv = $('<div class="hiddendiv common"></div>');
+        this.$body.append($hiddenDiv);
+      }
+    }
+
+    updateTextFields($input) {
+      const hasValue = Boolean($input.val().length);
+      const hasPlaceholder = Boolean($input.attr('placeholder'));
+      const addOrRemove = hasValue || hasPlaceholder ? 'add' : 'remove';
+      this.toggleActiveClass($input, addOrRemove);
+    }
+
+    validateField($input) {
+      if ($input.hasClass('validate')) {
+        const value = $input.val();
+        const noValue = !value.length;
+        const isValid = !$input[0].validity.badInput;
+
+        if (noValue && isValid) {
+          $input.removeClass('valid').removeClass('invalid');
+        } else {
+          const valid = $input[0].validity.valid;
+          const length = Number($input.attr('length')) || 0;
+
+          if (valid && (!length || length > value.length)) {
+            $input.removeClass('invalid').addClass('valid');
+          } else {
+            $input.removeClass('valid').addClass('invalid');
+          }
+        }
+      }
+    }
+
+    ChangeDateInputType() {
+      const $dateInputs = $('input[type="date"]');
+      $dateInputs.each((index, $item) => {
+        $item.type = 'text';
+      });
+      $dateInputs.on('focus', $item => {
+        $item.target.type = 'date';
+      });
+      $dateInputs.on('blur', $item => {
+        $item.target.type = 'text';
+
+        if ($item.target.value.length === 0) {
+          $(`label[for=${$item.target.id}]`).removeClass('active');
+        }
+      });
+    }
+
+    textAreaAutoResize() {
+      const $textarea = $(this);
+
+      if ($textarea.val().length) {
+        const $hiddenDiv = $('.hiddendiv');
+        const fontFamily = $textarea.css('font-family');
+        const fontSize = $textarea.css('font-size');
+
+        if (fontSize) {
+          $hiddenDiv.css('font-size', fontSize);
+        }
+
+        if (fontFamily) {
+          $hiddenDiv.css('font-family', fontFamily);
+        }
+
+        if ($textarea.attr('wrap') === 'off') {
+          $hiddenDiv.css('overflow-wrap', 'normal').css('white-space', 'pre');
+        }
+
+        $hiddenDiv.text(`${$textarea.val()}\n`);
+        const content = $hiddenDiv.html().replace(/\n/g, '<br>');
+        $hiddenDiv.html(content); // When textarea is hidden, width goes crazy.
+        // Approximate with half of window size
+
+        $hiddenDiv.css('width', $textarea.is(':visible') ? $textarea.width() : $(window).width() / 2);
+        $textarea.css('height', $hiddenDiv.height());
+      }
+    }
+
+  } //auto init Forms
+
+
+  const forms = new Forms();
+  forms.init();
+});
+jQuery(function ($) {
+  const SCROLLING_NAVBAR_OFFSET_TOP = 50;
+  $(window).on('scroll', () => {
+    const $navbar = $('.navbar');
+    if (!$navbar.length) return;
+    $('.scrolling-navbar')[$navbar.offset().top > SCROLLING_NAVBAR_OFFSET_TOP ? 'addClass' : 'removeClass']('top-nav-collapse');
+  });
+});
+jQuery($ => {
+  $.fn.mdbTreeview = function () {
+    const $this = $(this);
+
+    if ($this.hasClass('treeview')) {
+      treeviewToggle($this);
+    }
+
+    if ($this.hasClass('treeview-animated')) {
+      treeviewAnimated($this);
+    }
+
+    if ($this.hasClass('treeview-colorful')) {
+      treeviewColorful($this);
+    }
+  };
+
+  function treeviewToggle($this) {
+    const $toggler = $this.find('.rotate');
+    $toggler.each(function () {
+      const $this = $(this);
+      $this.off('click');
+      $this.on('click', function () {
+        const $this = $(this);
+        $this.siblings('.nested').toggleClass('active');
+        $this.toggleClass('down');
+      });
+    });
+  }
+
+  function treeviewAnimated($this) {
+    const $elements = $this.find('.treeview-animated-element');
+    const $closed = $this.find('.closed');
+    $this.find('.nested').hide();
+    $closed.off('click');
+    $closed.on('click', function () {
+      const $this = $(this);
+      const $target = $this.siblings('.nested');
+      const $pointer = $this.children('.fa-angle-right');
+      $this.toggleClass('open');
+      $pointer.toggleClass('down');
+
+      if (!$target.hasClass('active')) {
+        $target.addClass('active').slideDown();
+      } else {
+        $target.removeClass('active').slideUp();
+      }
+    });
+    $elements.off('click');
+    $elements.on('click', function () {
+      const $this = $(this);
+
+      if ($this.hasClass('opened')) {
+        $this.removeClass('opened');
+      } else {
+        $elements.removeClass('opened');
+        $this.addClass('opened');
+      }
+    });
+  }
+
+  function treeviewColorful($this) {
+    const $elements = $this.find('.treeview-colorful-element');
+    const $header = $this.find('.treeview-colorful-items-header');
+    $this.find('.nested').hide();
+    $header.off('click');
+    $header.on('click', function () {
+      const $this = $(this);
+      const $target = $this.siblings('.nested');
+      const $pointerPlus = $this.children('.fa-plus-circle');
+      const $pointerMinus = $this.children('.fa-minus-circle');
+      $this.toggleClass('open');
+      $pointerPlus.removeClass('fa-plus-circle');
+      $pointerPlus.addClass('fa-minus-circle');
+      $pointerMinus.removeClass('fa-minus-circle');
+      $pointerMinus.addClass('fa-plus-circle');
+
+      if (!$target.hasClass('active')) {
+        $target.addClass('active').slideDown();
+      } else {
+        $target.removeClass('active').slideUp();
+      }
+    });
+    $elements.off('click');
+    $elements.on('click', function () {
+      const $this = $(this);
+
+      if ($this.hasClass('opened')) {
+        $elements.removeClass('opened');
+      } else {
+        $elements.removeClass('opened');
+        $this.addClass('opened');
+      }
+    });
+  }
+});
+jQuery($ => {
+  class WOW {
+    init() {
+      $('.wow').wow();
+    }
+
+  }
+
+  class MDBWow {
+    constructor($wowElement, customization) {
+      this.$wowElement = $wowElement;
+      this.customization = customization;
+      this.animated = true;
+      this.options = this.assignElementCustomization();
+    }
+
+    init() {
+      $(window).scroll(() => {
+        if (this.animated) {
+          this.hide();
+        } else {
+          this.mdbWow();
+        }
+      });
+      this.appear();
+    }
+
+    assignElementCustomization() {
+      return {
+        animationName: this.$wowElement.css('animation-name'),
+        offset: 100,
+        iteration: this.fallback().or(this.$wowElement.data('wow-iteration')).or(1).value(),
+        duration: this.fallback().or(this.$wowElement.data('wow-duration')).or(1000).value(),
+        delay: this.fallback().or(this.$wowElement.data('wow-delay')).or(0).value()
+      };
+    }
+
+    mdbWow() {
+      if (this.$wowElement.css('visibility') === 'visible') {
+        return;
+      }
+
+      if (this.shouldElementBeVisible(true)) {
+        setTimeout(() => this.$wowElement.removeClass('animated'), this.countRemoveTime());
+        this.appear();
+      }
+    }
+
+    appear() {
+      this.$wowElement.addClass('animated');
+      this.$wowElement.css({
+        visibility: 'visible',
+        'animation-name': this.options.animationName,
+        'animation-iteration-count': this.options.iteration,
+        'animation-duration': this.options.duration,
+        'animation-delay': this.options.delay
+      });
+    }
+
+    hide() {
+      if (this.shouldElementBeVisible(false)) {
+        this.$wowElement.removeClass('animated');
+        this.$wowElement.css({
+          'animation-name': 'none',
+          visibility: 'hidden'
+        });
+      } else {
+        setTimeout(() => {
+          this.$wowElement.removeClass('animated');
+        }, this.countRemoveTime());
+      }
+
+      this.mdbWow();
+      this.animated = !this.animated;
+    }
+
+    shouldElementBeVisible(state) {
+      const thisElementOffset = this.getOffset(this.$wowElement[0]);
+      const thisElementHeight = this.$wowElement.height();
+      const documentHeight = $(document).height();
+      const windowHeight = window.innerHeight;
+      const scroll = window.scrollY;
+      const isElementTopVisible = windowHeight + scroll - this.options.offset > thisElementOffset;
+      const isElementBottomVisible = windowHeight + scroll - this.options.offset > thisElementOffset + thisElementHeight;
+      const isScrolledToTop = scroll < thisElementOffset;
+      const isScrolledToBottom = scroll < thisElementOffset + thisElementHeight;
+      const isDocumentHeightEqual = windowHeight + scroll === documentHeight;
+      const isOffsetHigherThanDocument = thisElementOffset + this.options.offset > documentHeight;
+      const isElementBottomHidden = windowHeight + scroll - this.options.offset < thisElementOffset;
+      const isScrolledOverTop = scroll > thisElementOffset + this.options.offset;
+      const isNotScrolledToTop = scroll < thisElementOffset + this.options.offset;
+      const isScrolledOverElement = thisElementOffset + thisElementHeight > documentHeight - this.options.offset;
+      let returnLogic = false;
+
+      if (state) {
+        returnLogic = isElementTopVisible && isScrolledToTop || isElementBottomVisible && isScrolledToBottom || isDocumentHeightEqual && isOffsetHigherThanDocument;
+      } else {
+        returnLogic = isElementTopVisible && isScrolledOverTop || isElementBottomHidden && isNotScrolledToTop || isScrolledOverElement;
+      }
+
+      return returnLogic;
+    }
+
+    countRemoveTime() {
+      const defaultAnimationTime = this.$wowElement.css('animation-duration').slice(0, -1) * 1000;
+      let removeTime = 0;
+
+      if (this.options.duration) {
+        removeTime = defaultAnimationTime + this.checkOptionsStringFormat(this.options.duration);
+      }
+
+      if (this.options.delay) {
+        removeTime += this.checkOptionsStringFormat(this.options.delay);
+      }
+
+      return removeTime;
+    }
+
+    checkOptionsStringFormat(element) {
+      let valueToReturn;
+
+      if (element.toString().slice(-1) === 's') {
+        valueToReturn = element.toString().slice(0, -1);
+      } else if (!isNaN(element.toString().slice(-1))) {
+        valueToReturn = element;
+      } else {
+        return console.log('Not supported animation customization format.');
+      }
+
+      return valueToReturn;
+    }
+
+    getOffset(element) {
+      const box = element.getBoundingClientRect();
+      const body = document.body;
+      const docEl = document.documentElement;
+      const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+      const clientTop = docEl.clientTop || body.clientTop || 0;
+      const top = box.top + scrollTop - clientTop;
+      return Math.round(top);
+    }
+
+    fallback() {
+      return {
+        _value: undefined,
+
+        or(value) {
+          if (typeof value !== 'undefined' && typeof this._value === 'undefined') {
+            this._value = value;
+          }
+
+          return this;
+        },
+
+        value() {
+          return this._value;
+        }
+
+      };
+    }
+
+  }
+
+  $.fn.wow = function (options) {
+    this.each(function () {
+      const mdbWow = new MDBWow($(this), options);
+      mdbWow.init();
+    });
+  };
+
+  window.WOW = WOW;
+});
 /**
  * File skip-link-focus-fix.js.
  *
@@ -7031,3 +7514,6 @@
     }, false);
   }
 })();
+jQuery(document).ready(function ($) {
+  new WOW().init();
+});

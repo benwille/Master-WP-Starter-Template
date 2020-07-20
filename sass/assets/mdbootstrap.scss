@@ -1,0 +1,52 @@
+@charset "UTF-8";
+
+// Bootstrap
+@import "../../src/sass/mdbootstrap/core/bootstrap/functions";
+@import "../../src/sass/mdbootstrap/core/bootstrap/variables";
+@import "../../src/sass/mdbootstrap/core/bootstrap/rfs";
+
+// CORE
+@import "../../src/sass/mdbootstrap/core/mixins";
+// Your custom variables
+@import "../../src/sass/mdbootstrap/custom-variables";
+@import "../../src/sass/mdbootstrap/core/colors";
+@import "../../src/sass/mdbootstrap/core/variables";
+@import "../../src/sass/mdbootstrap/core/global";
+@import "../../src/sass/mdbootstrap/core/helpers";
+@import "../../src/sass/mdbootstrap/core/typography";
+@import "../../src/sass/mdbootstrap/core/masks";
+@import "../../src/sass/mdbootstrap/core/waves";
+
+// FREE
+@import "../../src/sass/mdbootstrap/free/animations-basic";
+@import "../../src/sass/mdbootstrap/free/modules/animations-extended/module";
+@import "../../src/sass/mdbootstrap/free/buttons";
+@import "../../src/sass/mdbootstrap/free/cards";
+@import "../../src/sass/mdbootstrap/free/dropdowns";
+@import "../../src/sass/mdbootstrap/free/input-group";
+@import "../../src/sass/mdbootstrap/free/navbars";
+@import "../../src/sass/mdbootstrap/free/pagination";
+@import "../../src/sass/mdbootstrap/free/badges";
+@import "../../src/sass/mdbootstrap/free/modals";
+@import "../../src/sass/mdbootstrap/free/carousels";
+@import "../../src/sass/mdbootstrap/free/forms";
+@import "../../src/sass/mdbootstrap/free/msc";
+@import "../../src/sass/mdbootstrap/free/footers";
+@import "../../src/sass/mdbootstrap/free/list-group";
+@import "../../src/sass/mdbootstrap/free/tables";
+@import "../../src/sass/mdbootstrap/free/depreciated";
+@import "../../src/sass/mdbootstrap/free/steppers";
+@import "../../src/sass/mdbootstrap/free/loader";
+@import "../../src/sass/mdbootstrap/free/treeview";
+// Free addons
+// @import "../../src/sass/mdbootstrap/addons/datatables";
+// @import "../../src/sass/mdbootstrap/addons/datatables2";
+// @import "../../src/sass/mdbootstrap/addons/datatables-select";
+// @import "../../src/sass/mdbootstrap/addons/datatables-select2";
+// @import "../../src/sass/mdbootstrap/addons/directives";
+// @import "../../src/sass/mdbootstrap/addons/hierarchical-display";
+// @import "../../src/sass/mdbootstrap/addons/flag";
+// @import "../../src/sass/mdbootstrap/addons/rating";
+
+// Your custom styles
+@import "../../src/sass/mdbootstrap/custom-styles";

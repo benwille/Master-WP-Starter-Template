@@ -10,6 +10,7 @@ var concat = require("gulp-concat");
 var uglify = require("gulp-uglify");
 var imagemin = require("gulp-imagemin");
 var ignore = require("gulp-ignore");
+var merge = require("merge-stream");
 var rimraf = require("gulp-rimraf");
 var sourcemaps = require("gulp-sourcemaps");
 var browserSync = require("browser-sync").create();
@@ -142,7 +143,9 @@ gulp.task("purgecss", function () {
 		.src("dist/css/*.css")
 		.pipe(
 			purgecss({
-				content: ["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"]
+				content: ["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"],
+				whitelist: [],
+				whitelistPatterns: []
 			})
 		)
 		.pipe(gulp.dest("dist/css"));
@@ -208,7 +211,9 @@ gulp.task("scripts", function () {
 		`${paths.dev}/js/bootstrap4/bootstrap.bundle.js`,
 
 		// End - All BS4 stuff
-
+		// MDBootstrap
+		`${paths.dev}/js/mdbootstrap/free/*.js`,
+		`${paths.dev}/js/mdboostrap/vendor/free/*.js`,
 		`${paths.dev}/js/skip-link-focus-fix.js`,
 
 		// Adding currently empty javascript file to add on for your own themes´ customizations
@@ -282,7 +287,66 @@ gulp.task("copy-assets", function (done) {
 		.src(`${paths.node}undescores-for-npm/js/skip-link-focus-fix.js`)
 		.pipe(gulp.dest(`${paths.dev}/js`));
 
+	// Copy all MDBootstrap SCSS files
+	gulp
+		.src(`${paths.node}mdboostrap/scss/**/*.scss`)
+		.pipe(gulp.dest(`${paths.dev}/sass/mdboostrap`));
+
 	done();
+});
+
+gulp.task("update-src", function () {
+	// Copy All Bootstrap Files
+	var bootstrapjs = gulp
+		.src(`${paths.node}bootstrap/dist/js/**/*.js`)
+		.pipe(gulp.dest(`${paths.dev}/js/bootstrap4`));
+
+	var bootstrap = gulp
+		.src([
+			paths.node + "bootstrap/scss/*/*.scss",
+			paths.node + "bootstrap/scss/*.scss"
+		])
+		.pipe(gulp.dest(paths.dev + "/sass/bootstrap4/"));
+
+	// Copy all Font Awesome Fonts
+	var fonts = gulp
+		.src(`${paths.node}font-awesome/fonts/**/*.{ttf,woff,woff2,eot,svg}`)
+		.pipe(gulp.dest("./fonts"));
+
+	// Copy all Font Awesome SCSS files
+	var fontawesome = gulp
+		.src(paths.node + "font-awesome/scss/*.scss")
+		.pipe(gulp.dest(paths.dev + "/sass/fontawesome/"));
+
+	// _s SCSS files
+	var underscoresSCSS = gulp
+		.src(`${paths.node}undescores-for-npm/sass/media/*.scss`)
+		.pipe(gulp.dest(`${paths.dev}/sass/underscores`));
+
+	// _s JS files into /src/js
+	var underscoresJS = gulp
+		.src(`${paths.node}undescores-for-npm/js/skip-link-focus-fix.js`)
+		.pipe(gulp.dest(`${paths.dev}/js`));
+
+	// Copy all MDBootstrap SCSS files
+	var mdbootstrap = gulp
+		.src(`${paths.node}mdbootstrap/scss/**/*.scss`)
+		.pipe(gulp.dest(`${paths.dev}/sass/mdbootstrap`));
+
+	var mdbootstrapJS = gulp
+		.src(`${paths.node}mdbootstrap/src/js/**/*.js`)
+		.pipe(gulp.dest(`${paths.dev}/js/mdbootstrap`));
+
+	return merge(
+		bootstrapjs,
+		bootstrap,
+		fonts,
+		fontawesome,
+		underscoresSCSS,
+		underscoresJS,
+		mdbootstrap,
+		mdbootstrapJS
+	);
 });
 
 // Deleting the files distributed by the copy-assets task
@@ -440,7 +504,7 @@ gulp.task(
 		"images",
 		"clean-empty",
 		"purgecss",
-		"purgecss"
+		"remove-dev-code"
 	)
 );
 
