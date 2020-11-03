@@ -7,6 +7,9 @@ $primary-color: #0065a4;
 $secondary: #fcb714;
 $secondary-color: #fcb714;
 $terciary: #f0edea; // This does NOT change a Bootstrap variable
+$theme-colors: (
+    "terciary" : $terciary
+);
 
 $line-height-base: 1.75 !default;
 

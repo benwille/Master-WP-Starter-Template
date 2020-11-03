@@ -185,8 +185,8 @@ gulp.task("remove-dev-code", function () {
 
 gulp.task("fonts", function () {
 	return gulp
-		.src(paths.theme + "fonts/**.*")
-		.pipe(gulp.dest(paths.dist + "/fonts/"));
+		.src(paths.theme + "webfonts/**.*")
+		.pipe(gulp.dest(paths.dist + "/webfonts/"));
 });
 
 gulp.task("images", function () {
@@ -207,6 +207,8 @@ gulp.task("browser-sync", function () {
 // Uglifies and concat all JS files into one
 gulp.task("scripts", function () {
 	var scripts = [
+		//jQuery 3.5
+		`${paths.dev}/js/jquery/jquery.min.js`,
 		// Start - All BS4 stuff
 		`${paths.dev}/js/bootstrap4/bootstrap.bundle.js`,
 
@@ -236,6 +238,12 @@ gulp.task("scripts", function () {
 		.pipe(babel())
 		.pipe(concat("theme.js"))
 		.pipe(gulp.dest(paths.js));
+});
+
+gulp.task('jquery', function () {
+	// jQuery 3.5.1
+	return gulp.src(`${paths.dev}/js/jquery/jquery.min.js`)
+		.pipe(gulp.dest(paths.js))
 });
 
 // Deleting any file inside the /src folder
@@ -310,13 +318,13 @@ gulp.task("update-src", function () {
 
 	// Copy all Font Awesome Fonts
 	var fonts = gulp
-		.src(`${paths.node}font-awesome/fonts/**/*.{ttf,woff,woff2,eot,svg}`)
-		.pipe(gulp.dest("./fonts"));
+		.src(`${paths.node}@fortawesome/fontawesome-free/webfonts/**/*.{ttf,woff,woff2,eot,svg}`)
+		.pipe(gulp.dest("./webfonts"));
 
 	// Copy all Font Awesome SCSS files
 	var fontawesome = gulp
-		.src(paths.node + "font-awesome/scss/*.scss")
-		.pipe(gulp.dest(paths.dev + "/sass/fontawesome/"));
+		.src(paths.node + "@fortawesome/fontawesome-free/scss/*.scss")
+		.pipe(gulp.dest(paths.dev + "/sass/fontawesome5/"));
 
 	// _s SCSS files
 	var underscoresSCSS = gulp
@@ -337,6 +345,10 @@ gulp.task("update-src", function () {
 		.src(`${paths.node}mdbootstrap/src/js/**/*.js`)
 		.pipe(gulp.dest(`${paths.dev}/js/mdbootstrap`));
 
+	var jQuery = gulp
+		.src(`${paths.node}jquery/dist/**/*.js`)
+		.pipe(gulp.dest(`${paths.dev}/js/jquery`));
+
 	return merge(
 		bootstrapjs,
 		bootstrap,
@@ -345,7 +357,8 @@ gulp.task("update-src", function () {
 		underscoresSCSS,
 		underscoresJS,
 		mdbootstrap,
-		mdbootstrapJS
+		mdbootstrapJS,
+		jQuery
 	);
 });
 
