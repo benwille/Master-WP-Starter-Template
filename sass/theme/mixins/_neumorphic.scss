@@ -1,0 +1,51 @@
+@each $color, $value in $theme-colors {
+	.neumorphic-#{$color} {
+		border-radius: 20px;
+		&.flat {
+			background: $value !important;
+			box-shadow: 3px 3px 7px darken($value, 6%),
+				-3px -3px 7px lighten($value, 6%);
+
+			&:focus,
+			&:active {
+				background: linear-gradient(
+					145deg,
+					darken($value, 4%),
+					lighten($value, 3%)
+				) !important;
+			}
+		}
+
+		&.concave {
+			background: linear-gradient(
+				145deg,
+				darken($value, 4%),
+				lighten($value, 3%)
+			) !important;
+			box-shadow: 3px 3px 7px darken($value, 6%),
+				-3px -3px 7px lighten($value, 6%);
+		}
+
+		&.convex {
+			background: linear-gradient(
+				145deg,
+				lighten($value, 3%),
+				darken($value, 4%)
+			) !important;
+			box-shadow: 3px 3px 7px darken($value, 6%),
+				-3px -3px 7px lighten($value, 6%);
+			&:focus,
+			&:active {
+				background: $value !important;
+				box-shadow: inset 3px 3px 7px darken($value, 6%),
+					inset -3px -3px 7px lighten($value, 6%);
+			}
+		}
+
+		&.inset {
+			background: $value !important;
+			box-shadow: inset 3px 3px 7px darken($value, 6%),
+				inset -3px -3px 7px lighten($value, 6%);
+		}
+	}
+}
