@@ -15,7 +15,7 @@ var sourcemaps = require("gulp-sourcemaps");
 var browserSync = require("browser-sync").create();
 var del = require("del");
 var cleanCSS = require("gulp-clean-css");
-var gulpSequence = require("gulp-sequence");
+var cssnano = require('gulp-cssnano');
 var replace = require("gulp-replace");
 var strreplace = require("gulp-string-replace");
 var autoprefixer = require("autoprefixer");
@@ -49,43 +49,6 @@ gulp.task("sass", function () {
 		.pipe(gulp.dest(paths.css));
 	return stream;
 });
-
-// Run:
-// gulp watch
-// Starts watcher. Watcher runs gulp sass task on changes
-gulp.task("watch", function () {
-	gulp.watch(`${paths.sass}/**/*.scss`, gulp.series("styles"));
-	gulp.watch(
-		[
-			`${paths.dev}/js/**/*.js`,
-			"js/**/*.js",
-			"!js/theme.js",
-			"!js/theme.min.js"
-		],
-		gulp.series("scripts")
-	);
-
-	//Inside the watch task.
-	gulp.watch(`${paths.imgsrc}/**`, gulp.series("imagemin-watch"));
-});
-
-// Run:
-// gulp imagemin
-// Running image optimizing task
-gulp.task("imagemin", function () {
-	gulp.src(`${paths.imgsrc}/**`).pipe(imagemin()).pipe(gulp.dest(paths.img));
-});
-
-/**
- * Ensures the 'imagemin' task is complete before reloading browsers
- * @verbose
- */
-gulp.task(
-	"imagemin-watch",
-	gulp.series("imagemin", function () {
-		browserSync.reload();
-	})
-);
 
 // Run:
 // gulp cssnano
@@ -126,6 +89,9 @@ gulp.task("minifycss", function () {
 		.pipe(gulp.dest(paths.css));
 });
 
+// Run:
+// gulp cleancss
+// Use if you need clean out minimized files from CSS folder
 gulp.task("cleancss", function () {
 	return gulp
 		.src(`${paths.css}/*.min.css`, { read: false }) // Much faster
@@ -133,21 +99,49 @@ gulp.task("cleancss", function () {
 		.pipe(rimraf());
 });
 
+// Run
+// gulp styles
+// Preprocess sass and minimize
 gulp.task("styles", function (callback) {
 	gulp.series("sass", "minifycss")(callback);
 });
 
+// Run
+// gulp purgecss
+// Removes code not used in theme
 gulp.task("purgecss", function () {
 	return gulp
 		.src("dist/css/*.css")
 		.pipe(
 			purgecss({
-				content: ["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"]
+				content: ["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"],
+				whitelist: [
+					...purgecssWordpress.whitelist,
+					"admin-bar",
+					"list-unstyled"
+				],
+				whitelistPatterns: [
+					...purgecssWordpress.whitelistPatterns,
+					/^wpcf7/,
+					/^m.?-[0-5]{1}/,
+					/^p.?-[0-5]{1}/,
+					/^h[0-6]{1}/,
+					/^text-/,
+					/^flex-/,
+					/^col/,
+					/animated/
+				],
+				whitelistPatternsChildren: [
+					/^fa/
+				]
 			})
 		)
 		.pipe(gulp.dest("dist/css"));
 });
 
+// Run
+// gulp purgecss-rejected
+// Shows which classes were removed using purgecss
 gulp.task("purgecss-rejected", function () {
 	return gulp
 		.src("css/theme.css")
@@ -173,32 +167,6 @@ gulp.task("purgecss-rejected", function () {
 		.pipe(gulp.dest("css"));
 });
 
-gulp.task("remove-dev-code", function () {
-	return gulp
-		.src(["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"])
-		.pipe(removeCode({ production: true }))
-		.pipe(gulp.dest("dist"));
-});
-
-gulp.task("fonts", function () {
-	return gulp
-		.src(paths.theme + "fonts/**.*")
-		.pipe(gulp.dest(paths.dist + "/fonts/"));
-});
-
-gulp.task("images", function () {
-	return gulp
-		.src([paths.img + "/**/*.*", paths.img + "/*.*"])
-		.pipe(gulp.dest(paths.dist + "/images/"));
-});
-
-// Run:
-// gulp browser-sync
-// Starts browser-sync task for starting the server.
-gulp.task("browser-sync", function () {
-	browserSync.init(cfg.browserSyncWatchFiles, cfg.browserSyncOptions);
-});
-
 // Run:
 // gulp scripts.
 // Uglifies and concat all JS files into one
@@ -207,8 +175,7 @@ gulp.task("scripts", function () {
 		// Start - All BS4 stuff
 		`${paths.dev}/js/bootstrap4/bootstrap.bundle.js`,
 
-		// End - All BS4 stuff
-
+		// Underscores normalizers
 		`${paths.dev}/js/skip-link-focus-fix.js`,
 
 		// Adding currently empty javascript file to add on for your own themes´ customizations
@@ -233,24 +200,14 @@ gulp.task("scripts", function () {
 		.pipe(gulp.dest(paths.js));
 });
 
-// Deleting any file inside the /src folder
-gulp.task("clean-source", function () {
-	return del(["src/**/*"]);
-});
-
-// Run:
-// gulp watch-bs
-// Starts watcher with browser-sync. Browser-sync reloads page automatically on your browser
-gulp.task("watch-bs", gulp.parallel("browser-sync", "watch"));
-
 // Run:
 // gulp copy-assets.
-// Copy all needed dependency assets files from bower_component assets to themes /js, /scss and /fonts folder. Run this task after bower install or bower update
+// Copy all needed dependency assets files from node_modules to themes /js, /scss and /fonts folder.
+// Run this task after npm install or npm update
 
-////////////////// All Bootstrap SASS  Assets /////////////////////////
 gulp.task("copy-assets", function (done) {
-	////////////////// All Bootstrap 4 Assets /////////////////////////
-	// Copy all JS files
+
+	// Copy all Bootstrap JS files
 	var stream = gulp
 		.src(`${paths.node}bootstrap/dist/js/**/*.js`)
 		.pipe(gulp.dest(`${paths.dev}/js/bootstrap4`));
@@ -259,8 +216,6 @@ gulp.task("copy-assets", function (done) {
 	gulp
 		.src(`${paths.node}bootstrap/scss/**/*.scss`)
 		.pipe(gulp.dest(`${paths.dev}/sass/bootstrap4`));
-
-	////////////////// End Bootstrap 4 Assets /////////////////////////
 
 	// Copy all Font Awesome Fonts
 	gulp
@@ -274,16 +229,20 @@ gulp.task("copy-assets", function (done) {
 
 	// _s SCSS files
 	gulp
-		.src(`${paths.node}undescores-for-npm/sass/media/*.scss`)
+		.src(`${paths.node}underscores-for-npm/sass/media/*.scss`)
 		.pipe(gulp.dest(`${paths.dev}/sass/underscores`));
 
 	// _s JS files into /src/js
 	gulp
-		.src(`${paths.node}undescores-for-npm/js/skip-link-focus-fix.js`)
+		.src(`${paths.node}underscores-for-npm/js/skip-link-focus-fix.js`)
 		.pipe(gulp.dest(`${paths.dev}/js`));
 
 	done();
 });
+
+/**
+ * Tasks for cleaning folders and files
+ */
 
 // Deleting the files distributed by the copy-assets task
 gulp.task("clean-vendor-assets", function () {
@@ -301,6 +260,11 @@ gulp.task("clean-vendor-assets", function () {
 	]);
 });
 
+// Deleting any file inside the /src folder
+gulp.task("clean-source", function () {
+	return del(["src/**/*"]);
+});
+
 // Deleting any file inside the /dist folder
 gulp.task("clean-dist", function () {
 	return del([paths.dist + "/**"]);
@@ -314,6 +278,88 @@ gulp.task("clean-empty", function () {
 		paths.dist + "/src",
 		paths.vendor
 	]);
+});
+
+// Run
+// gulp remove-dev-code
+// Remove developer code
+gulp.task("remove-dev-code", function () {
+	return gulp
+		.src(["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"])
+		.pipe(removeCode({ production: true }))
+		.pipe(gulp.dest("dist"));
+});
+
+/**
+ * Browser sync and watch tasks
+ */
+
+// Run:
+// gulp watch
+// Starts watcher. Watcher runs gulp sass task on changes
+gulp.task("watch", function () {
+	gulp.watch(`${paths.sass}/**/*.scss`, gulp.series("styles"));
+	gulp.watch(
+		[
+			`${paths.dev}/js/**/*.js`,
+			"js/**/*.js",
+			"!js/theme.js",
+			"!js/theme.min.js"
+		],
+		gulp.series("scripts")
+	);
+
+	//Inside the watch task.
+	gulp.watch(`${paths.imgsrc}/**`, gulp.series("imagemin-watch"));
+});
+
+/**
+ * Ensures the 'imagemin' task is complete before reloading browsers
+ * @verbose
+ */
+gulp.task(
+	"imagemin-watch",
+	gulp.series("imagemin", function () {
+		browserSync.reload();
+	})
+);
+
+// Run:
+// gulp browser-sync
+// Starts browser-sync task for starting the server.
+gulp.task("browser-sync", function () {
+	browserSync.init(cfg.browserSyncWatchFiles, cfg.browserSyncOptions);
+});
+
+// Run:
+// gulp watch-bs
+// Starts watcher with browser-sync. Browser-sync reloads page automatically on your browser
+gulp.task("watch-bs", gulp.parallel("browser-sync", "watch"));
+
+
+// Run
+// gulp fonts
+// Move fonts to dist folder
+gulp.task("fonts", function () {
+	return gulp
+		.src(paths.theme + "fonts/**.*")
+		.pipe(gulp.dest(paths.dist + "/fonts/"));
+});
+
+// Run
+// gulp images
+// Move images to dist folder without distortion
+gulp.task("images", function () {
+	return gulp
+		.src([paths.img + "/**/*.*", paths.img + "/*.*"])
+		.pipe(gulp.dest(paths.dist + "/images/"));
+});
+
+// Run:
+// gulp imagemin
+// Running image optimizing task
+gulp.task("imagemin", function () {
+	gulp.src(`${paths.imgsrc}/**`).pipe(imagemin()).pipe(gulp.dest(paths.img));
 });
 
 // Run
@@ -371,25 +417,7 @@ gulp.task(
 				],
 				{ buffer: true }
 			)
-			.pipe(
-				replace(
-					"/js/jquery.slim.min.js",
-					"/js" + paths.vendor + "/jquery.slim.min.js",
-					{ skipBinary: true }
-				)
-			)
-			.pipe(
-				replace("/js/popper.min.js", "/js" + paths.vendor + "/popper.min.js", {
-					skipBinary: true
-				})
-			)
-			.pipe(
-				replace(
-					"/js/skip-link-focus-fix.js",
-					"/js" + paths.vendor + "/skip-link-focus-fix.js",
-					{ skipBinary: true }
-				)
-			)
+
 			.pipe(strreplace("understrap", cfg.theme.slug))
 			.pipe(strreplace("UnderStrap", cfg.theme.name))
 			.pipe(strreplace("THEME_DEVELOPER_EMAIL", cfg.support.email))
@@ -405,29 +433,6 @@ gulp.task("clean-dist-product", function () {
 });
 
 // Run
-// gulp dist-product
-// Copies the files to the /dist-prod folder for distribution as theme with all assets
-gulp.task(
-	"dist-product",
-	gulp.series(["clean-dist-product"], function () {
-		return gulp
-			.src([
-				"**/*",
-				`!${paths.bower}`,
-				`!${paths.bower}/**`,
-				`!${paths.node}`,
-				`!${paths.node}/**`,
-				`!${paths.dist}`,
-				`!${paths.dist}/**`,
-				`!${paths.distprod}`,
-				`!${paths.distprod}/**`,
-				"*"
-			])
-			.pipe(gulp.dest(paths.distprod));
-	})
-);
-
-// Run
 // gulp compile
 // Compiles the styles and scripts and runs the dist task
 gulp.task(
@@ -439,15 +444,9 @@ gulp.task(
 		"fonts",
 		"images",
 		"clean-empty",
-		"purgecss",
 		"purgecss"
 	)
 );
-
-// Run:
-// gulp
-// Starts watcher (default task)
-gulp.task("default", gulp.series("watch"));
 
 /**
  * Create zip archive from generated theme files.
@@ -458,3 +457,9 @@ gulp.task("bundle", function () {
 		.pipe(zip(cfg.theme.slug + ".zip"), gulp.dest(paths.theme + cfg.theme.slug))
 		.pipe(gulp.dest(paths.theme));
 });
+
+// Run:
+// gulp
+// Starts watcher (default task)
+gulp.task("default", gulp.series("watch"));
+
