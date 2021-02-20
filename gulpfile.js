@@ -1,32 +1,50 @@
 // Defining requirements
 var gulp = require("gulp");
-var plumber = require("gulp-plumber");
-var sass = require("gulp-sass");
-var babel = require("gulp-babel");
-var postcss = require("gulp-postcss");
-var watch = require("gulp-watch");
-var rename = require("gulp-rename");
-var concat = require("gulp-concat");
-var uglify = require("gulp-uglify");
-var imagemin = require("gulp-imagemin");
-var ignore = require("gulp-ignore");
-var rimraf = require("gulp-rimraf");
-var sourcemaps = require("gulp-sourcemaps");
-var browserSync = require("browser-sync").create();
-var del = require("del");
-var cleanCSS = require("gulp-clean-css");
-var gulpSequence = require("gulp-sequence");
-var replace = require("gulp-replace");
-var strreplace = require("gulp-string-replace");
 var autoprefixer = require("autoprefixer");
-var wppot = require("gulp-wp-pot");
-var zip = require("gulp-zip");
+var babel = require("gulp-babel");
+var browserSync = require("browser-sync").create();
+var cleanCSS = require("gulp-clean-css");
+var concat = require("gulp-concat");
+var del = require("del");
+var gulpSequence = require("gulp-sequence");
+var ignore = require("gulp-ignore");
+var imagemin = require("gulp-imagemin");
+var newer = require("gulp-newer");
+var phpcs = require("gulp-phpcs");
+var plumber = require("gulp-plumber");
+var postcss = require("gulp-postcss");
 var purgecss = require("gulp-purgecss");
 var removeCode = require("gulp-remove-code");
+var rename = require("gulp-rename");
+var replace = require("gulp-replace");
+var rimraf = require("gulp-rimraf");
+var sass = require("gulp-sass");
+var sourcemaps = require("gulp-sourcemaps");
+var strreplace = require("gulp-string-replace");
+var uglify = require("gulp-uglify");
+var watch = require("gulp-watch");
+var wppot = require("gulp-wp-pot");
+var zip = require("gulp-zip");
 
 // Configuration file to keep your code DRY
 var cfg = require("./gulpconfig.json");
 var paths = cfg.paths;
+
+// Run:
+// gulp php
+// PHP to theme folder
+gulp.task("php", function() {
+	return gulp.src(paths.php)
+		.pipe(phpcs({
+			bin: "vendor/bin/phpcs",
+			standard: "WordPress",
+			warningSeverity: 0
+		}))
+		.pipe(phpcs.reporter('log'))
+		.pipe(strreplace("understrap", cfg.theme.slug))
+		.pipe(strreplace("Understrap", cfg.theme.name))
+		.pipe(gulp.dest(paths.theme));
+})
 
 // Run:
 // gulp sass
@@ -57,7 +75,7 @@ gulp.task("watch", function () {
 	gulp.watch(`${paths.sass}/**/*.scss`, gulp.series("styles"));
 	gulp.watch(
 		[
-			`${paths.dev}/js/**/*.js`,
+			`${paths.src}/js/**/*.js`,
 			"js/**/*.js",
 			"!js/theme.js",
 			"!js/theme.min.js"
@@ -139,10 +157,15 @@ gulp.task("styles", function (callback) {
 
 gulp.task("purgecss", function () {
 	return gulp
-		.src("dist/css/*.css")
+		.src(`${paths.css}/*.css`)
 		.pipe(
 			purgecss({
-				content: ["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"]
+				content: [`${paths.theme}/**/*.php`, `!${paths.vendor}/`, `!${paths.theme}/woocommerce/`, `!${paths.node}/`, `!${paths.dev}/`]
+			})
+		)
+		.pipe(
+			rename({
+				suffix: ".purged"
 			})
 		)
 		.pipe(gulp.dest("dist/css"));
@@ -161,11 +184,10 @@ gulp.task("purgecss-rejected", function () {
 				content: [
 					"**/*.php",
 					"!node_modules/",
-					"!sass/",
-					"!src/",
+					"!sass/", // TODO: Remove
+					"!src/", // TODO: Remove
 					"!vendor/",
 					"!woocommerce/",
-					"!dist/"
 				],
 				rejected: true
 			})
@@ -175,17 +197,13 @@ gulp.task("purgecss-rejected", function () {
 
 gulp.task("remove-dev-code", function () {
 	return gulp
-		.src(["dist/**/*.php", "!dist/vendor/", "!dist/woocommerce/"])
+		.src(["**/*.php", "!vendor/", "!woocommerce/", "!node_modules/"])
 		.pipe(removeCode({ production: true }))
-		.pipe(gulp.dest("dist"));
+		.pipe(gulp.dest(paths.theme));
 });
 
-gulp.task("fonts", function () {
-	return gulp
-		.src(paths.theme + "fonts/**.*")
-		.pipe(gulp.dest(paths.dist + "/fonts/"));
-});
 
+// TODO: Remove?
 gulp.task("images", function () {
 	return gulp
 		.src([paths.img + "/**/*.*", paths.img + "/*.*"])
@@ -205,15 +223,15 @@ gulp.task("browser-sync", function () {
 gulp.task("scripts", function () {
 	var scripts = [
 		// Start - All BS4 stuff
-		`${paths.dev}/js/bootstrap4/bootstrap.bundle.js`,
+		`${paths.src}/js/bootstrap4/bootstrap.bundle.js`,
 
 		// End - All BS4 stuff
 
-		`${paths.dev}/js/skip-link-focus-fix.js`,
+		`${paths.src}/js/skip-link-focus-fix.js`,
 
 		// Adding currently empty javascript file to add on for your own themes´ customizations
 		// Please add any customizations to this .js file only!
-		`${paths.dev}/js/custom-javascript.js`
+		`${paths.src}/js/custom-javascript.js`
 	];
 	gulp
 		.src(scripts, { allowEmpty: true })
@@ -252,35 +270,35 @@ gulp.task("copy-assets", function (done) {
 	////////////////// All Bootstrap 4 Assets /////////////////////////
 	// Copy all JS files
 	var stream = gulp
-		.src(`${paths.node}bootstrap/dist/js/**/*.js`)
-		.pipe(gulp.dest(`${paths.dev}/js/bootstrap4`));
+		.src(`${paths.node}/bootstrap/dist/js/**/*.js`)
+		.pipe(gulp.dest(`${paths.src}/js/bootstrap4`));
 
 	// Copy all Bootstrap SCSS files
 	gulp
-		.src(`${paths.node}bootstrap/scss/**/*.scss`)
-		.pipe(gulp.dest(`${paths.dev}/sass/bootstrap4`));
+		.src(`${paths.node}/bootstrap/scss/**/*.scss`)
+		.pipe(gulp.dest(`${paths.src}/sass/bootstrap4`));
 
 	////////////////// End Bootstrap 4 Assets /////////////////////////
 
 	// Copy all Font Awesome Fonts
 	gulp
-		.src(`${paths.node}font-awesome/fonts/**/*.{ttf,woff,woff2,eot,svg}`)
+		.src(`${paths.node}/font-awesome/fonts/**/*.{ttf,woff,woff2,eot,svg}`)
 		.pipe(gulp.dest("./fonts"));
 
 	// Copy all Font Awesome SCSS files
 	gulp
-		.src(`${paths.node}font-awesome/scss/*.scss`)
-		.pipe(gulp.dest(`${paths.dev}/sass/fontawesome`));
+		.src(`${paths.node}/font-awesome/scss/*.scss`)
+		.pipe(gulp.dest(`${paths.src}/sass/fontawesome`));
 
 	// _s SCSS files
 	gulp
-		.src(`${paths.node}undescores-for-npm/sass/media/*.scss`)
-		.pipe(gulp.dest(`${paths.dev}/sass/underscores`));
+		.src(`${paths.node}/underscores-for-npm/sass/media/*.scss`)
+		.pipe(gulp.dest(`${paths.src}/sass/underscores`));
 
 	// _s JS files into /src/js
 	gulp
-		.src(`${paths.node}undescores-for-npm/js/skip-link-focus-fix.js`)
-		.pipe(gulp.dest(`${paths.dev}/js`));
+		.src(`${paths.node}/underscores-for-npm/js/skip-link-focus-fix.js`)
+		.pipe(gulp.dest(`${paths.src}/js`));
 
 	done();
 });
@@ -288,12 +306,12 @@ gulp.task("copy-assets", function (done) {
 // Deleting the files distributed by the copy-assets task
 gulp.task("clean-vendor-assets", function () {
 	return del([
-		`${paths.dev}/js/bootstrap4/**`,
-		`${paths.dev}/sass/bootstrap4/**`,
+		`${paths.src}/js/bootstrap4/**`,
+		`${paths.src}/sass/bootstrap4/**`,
 		"./fonts/*wesome*.{ttf,woff,woff2,eot,svg}",
-		`${paths.dev}/sass/fontawesome/**`,
-		`${paths.dev}/sass/underscores/**`,
-		`${paths.dev}/js/skip-link-focus-fix.js`,
+		`${paths.src}/sass/fontawesome/**`,
+		`${paths.src}/sass/underscores/**`,
+		`${paths.src}/js/skip-link-focus-fix.js`,
 		`${paths.js}/**/skip-link-focus-fix.js`,
 		`${paths.js}/**/popper.min.js`,
 		`${paths.js}/**/popper.js`,
@@ -347,6 +365,8 @@ gulp.task(
 					`!${paths.bower}/**`,
 					`!${paths.node}`,
 					`!${paths.node}/**`,
+					`!${paths.src}`,
+					`!${paths.src}/**`,
 					`!${paths.dev}`,
 					`!${paths.dev}/**`,
 					`!${paths.dist}`,
