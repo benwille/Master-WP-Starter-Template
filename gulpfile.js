@@ -6,7 +6,6 @@ var browserSync = require("browser-sync").create();
 var cleanCSS = require("gulp-clean-css");
 var concat = require("gulp-concat");
 var del = require("del");
-var gulpSequence = require("gulp-sequence");
 var ignore = require("gulp-ignore");
 var imagemin = require("gulp-imagemin");
 var newer = require("gulp-newer");
@@ -456,7 +455,7 @@ gulp.task(
 		"styles",
 		"scripts",
 		"dist",
-		"fonts",
+		// "fonts",
 		"images",
 		"clean-empty",
 		"purgecss",
