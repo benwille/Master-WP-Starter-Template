@@ -13,6 +13,8 @@
 	<!-- Don't show warnings -->
 	<arg value="n"/>
 
+	<arg name="tab-width" value="4" />
+
 	<!-- Only check the PHP files -->
 	<arg name="extensions" value="php"/>
 
@@ -39,6 +41,7 @@
 		<exclude name="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma"/>
 		<exclude name="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed"/>
 		<exclude name="Generic.WhiteSpace.ScopeIndent"/>
+		<exclude name="Generic.Files.EndFileNewline"/>
 
 		<exclude name="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket"/>
 		<exclude name="PEAR.Functions.FunctionCallSignature.CloseBracketLine"/>

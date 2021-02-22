@@ -32,18 +32,22 @@ var paths = cfg.paths;
 // Run:
 // gulp php
 // PHP to theme folder
-gulp.task("php", function() {
-	return gulp.src(paths.php)
-		.pipe(phpcs({
-			bin: "vendor/bin/phpcs",
-			standard: "WordPress",
-			warningSeverity: 0
-		}))
-		.pipe(phpcs.reporter('log'))
+gulp.task("php", function () {
+	return gulp
+		.src(paths.php)
+		.pipe(newer(paths.theme))
+		.pipe(
+			phpcs({
+				bin: "vendor/bin/phpcs",
+				standard: "WordPress",
+				warningSeverity: 0,
+			})
+		)
+		.pipe(phpcs.reporter("log"))
 		.pipe(strreplace("understrap", cfg.theme.slug))
 		.pipe(strreplace("Understrap", cfg.theme.name))
 		.pipe(gulp.dest(paths.theme));
-})
+});
 
 // Run:
 // gulp sass
@@ -56,7 +60,7 @@ gulp.task("sass", function () {
 				errorHandler: function (err) {
 					console.log(err);
 					this.emit("end");
-				}
+				},
 			})
 		)
 		.pipe(sourcemaps.init({ loadMaps: true }))
@@ -77,7 +81,7 @@ gulp.task("watch", function () {
 			`${paths.src}/js/**/*.js`,
 			"js/**/*.js",
 			"!js/theme.js",
-			"!js/theme.min.js"
+			"!js/theme.min.js",
 		],
 		gulp.series("scripts")
 	);
@@ -116,7 +120,7 @@ gulp.task("cssnano", function () {
 				errorHandler: function (err) {
 					console.log(err);
 					this.emit("end");
-				}
+				},
 			})
 		)
 		.pipe(rename({ suffix: ".min" }))
@@ -135,7 +139,7 @@ gulp.task("minifycss", function () {
 				errorHandler: function (err) {
 					console.log(err);
 					this.emit("end");
-				}
+				},
 			})
 		)
 		.pipe(rename({ suffix: ".min" }))
@@ -159,12 +163,18 @@ gulp.task("purgecss", function () {
 		.src(`${paths.css}/*.css`)
 		.pipe(
 			purgecss({
-				content: [`${paths.theme}/**/*.php`, `!${paths.vendor}/`, `!${paths.theme}/woocommerce/`, `!${paths.node}/`, `!${paths.dev}/`]
+				content: [
+					`${paths.theme}/**/*.php`,
+					`!${paths.vendor}/`,
+					`!${paths.theme}/woocommerce/`,
+					`!${paths.node}/`,
+					`!${paths.dev}/`,
+				],
 			})
 		)
 		.pipe(
 			rename({
-				suffix: ".purged"
+				suffix: ".purged",
 			})
 		)
 		.pipe(gulp.dest("dist/css"));
@@ -175,7 +185,7 @@ gulp.task("purgecss-rejected", function () {
 		.src("css/theme.css")
 		.pipe(
 			rename({
-				suffix: ".rejected"
+				suffix: ".rejected",
 			})
 		)
 		.pipe(
@@ -188,7 +198,7 @@ gulp.task("purgecss-rejected", function () {
 					"!vendor/",
 					"!woocommerce/",
 				],
-				rejected: true
+				rejected: true,
 			})
 		)
 		.pipe(gulp.dest("css"));
@@ -200,7 +210,6 @@ gulp.task("remove-dev-code", function () {
 		.pipe(removeCode({ production: true }))
 		.pipe(gulp.dest(paths.theme));
 });
-
 
 // TODO: Remove?
 gulp.task("images", function () {
@@ -230,13 +239,13 @@ gulp.task("scripts", function () {
 
 		// Adding currently empty javascript file to add on for your own themes´ customizations
 		// Please add any customizations to this .js file only!
-		`${paths.src}/js/custom-javascript.js`
+		`${paths.src}/js/custom-javascript.js`,
 	];
 	gulp
 		.src(scripts, { allowEmpty: true })
 		.pipe(
 			babel({
-				presets: ["@babel/preset-env"]
+				presets: ["@babel/preset-env"],
 			})
 		)
 		.pipe(concat("theme.min.js"))
@@ -314,7 +323,7 @@ gulp.task("clean-vendor-assets", function () {
 		`${paths.js}/**/skip-link-focus-fix.js`,
 		`${paths.js}/**/popper.min.js`,
 		`${paths.js}/**/popper.js`,
-		paths.vendor !== "" ? paths.js + paths.vendor + "/**" : ""
+		paths.vendor !== "" ? paths.js + paths.vendor + "/**" : "",
 	]);
 });
 
@@ -329,7 +338,7 @@ gulp.task("clean-empty", function () {
 		paths.dist + "/node_modules",
 		paths.dist + "/sass",
 		paths.dist + "/src",
-		paths.vendor
+		paths.vendor,
 	]);
 });
 
@@ -344,7 +353,7 @@ gulp.task("translate", function () {
 				domain: cfg.theme.slug,
 				package: cfg.theme.name,
 				bugReport: cfg.theme.name,
-				lastTranslator: cfg.theme.author
+				lastTranslator: cfg.theme.author,
 			})
 		)
 		.pipe(gulp.dest(paths.dist + "/languages/" + cfg.theme.slug + ".pot"));
@@ -383,10 +392,8 @@ gulp.task(
 					"!CHANGELOG.md",
 					"!.travis.yml",
 					"!jshintignore",
-					"!codesniffer.ruleset.xml",
-					"!" + paths.node,
-					"!" + paths.node + "/**/*",
-					"*"
+					"!phpcs.xml",
+					"*",
 				],
 				{ buffer: true }
 			)
@@ -399,7 +406,7 @@ gulp.task(
 			)
 			.pipe(
 				replace("/js/popper.min.js", "/js" + paths.vendor + "/popper.min.js", {
-					skipBinary: true
+					skipBinary: true,
 				})
 			)
 			.pipe(
@@ -422,29 +429,6 @@ gulp.task(
 gulp.task("clean-dist-product", function () {
 	return del([paths.distprod + "/**"]);
 });
-
-// Run
-// gulp dist-product
-// Copies the files to the /dist-prod folder for distribution as theme with all assets
-gulp.task(
-	"dist-product",
-	gulp.series(["clean-dist-product"], function () {
-		return gulp
-			.src([
-				"**/*",
-				`!${paths.bower}`,
-				`!${paths.bower}/**`,
-				`!${paths.node}`,
-				`!${paths.node}/**`,
-				`!${paths.dist}`,
-				`!${paths.dist}/**`,
-				`!${paths.distprod}`,
-				`!${paths.distprod}/**`,
-				"*"
-			])
-			.pipe(gulp.dest(paths.distprod));
-	})
-);
 
 // Run
 // gulp compile
