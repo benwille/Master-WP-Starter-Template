@@ -46,6 +46,9 @@ gulp.task("php", function () {
 		.pipe(phpcs.reporter("log"))
 		.pipe(strreplace("understrap", cfg.theme.slug))
 		.pipe(strreplace("Understrap", cfg.theme.name))
+		.pipe(strreplace("THEME_DEVELOPER_EMAIL", cfg.support.email))
+		.pipe(strreplace("THEME_SUPPORT_LINKS", cfg.support.links))
+		.pipe(strreplace("THEME_SUPPORT_NOTES", cfg.support.notes))
 		.pipe(gulp.dest(paths.theme));
 });
 
@@ -160,13 +163,12 @@ gulp.task("styles", function (callback) {
 
 gulp.task("purgecss", function () {
 	return gulp
-		.src(`${paths.css}/*.css`)
+		.src([`${paths.css}/*.css`, `!${paths.css}/custom-editor-*.css`])
 		.pipe(
 			purgecss({
 				content: [
-					`${paths.theme}/**/*.php`,
+					`${paths.theme}**/*.php`,
 					`!${paths.vendor}/`,
-					`!${paths.theme}/woocommerce/`,
 					`!${paths.node}/`,
 					`!${paths.dev}/`,
 				],
@@ -177,7 +179,7 @@ gulp.task("purgecss", function () {
 				suffix: ".purged",
 			})
 		)
-		.pipe(gulp.dest("dist/css"));
+		.pipe(gulp.dest(paths.css));
 });
 
 gulp.task("purgecss-rejected", function () {
@@ -206,7 +208,7 @@ gulp.task("purgecss-rejected", function () {
 
 gulp.task("remove-dev-code", function () {
 	return gulp
-		.src(["**/*.php", "!vendor/", "!woocommerce/", "!node_modules/"])
+		.src(["**/*.php", "!vendor/", "!woocommerce/", "!node_modules/", "!dev/"])
 		.pipe(removeCode({ production: true }))
 		.pipe(gulp.dest(paths.theme));
 });
@@ -329,7 +331,14 @@ gulp.task("clean-vendor-assets", function () {
 
 // Deleting any file inside the /dist folder
 gulp.task("clean-dist", function () {
-	return del([paths.dist + "/**"]);
+	return del([
+		"**/*.php",
+		"*-templates",
+		"inc",
+		"!dev/**",
+		"!vendor/**",
+		"!node_modules/**",
+	]);
 });
 
 // Delete empty folders from /dist folder
@@ -436,13 +445,13 @@ gulp.task("clean-dist-product", function () {
 gulp.task(
 	"compile",
 	gulp.series(
+		"php",
 		"styles",
 		"scripts",
-		"dist",
+		// "dist",
 		// "fonts",
-		"images",
-		"clean-empty",
-		"purgecss",
+		// "images",
+		// "clean-empty",
 		"purgecss"
 	)
 );
@@ -457,7 +466,25 @@ gulp.task("default", gulp.series("watch"));
  */
 gulp.task("bundle", function () {
 	return gulp
-		.src([paths.dist + "/**"])
-		.pipe(zip(cfg.theme.slug + ".zip"), gulp.dest(paths.theme + cfg.theme.slug))
+		.src([
+			"**/*",
+			"!" + cfg.theme.slug,
+			"!" + cfg.theme.slug + "/**/*",
+			"!dev",
+			"!dev/**/*",
+			"!node_modules",
+			"!node_modules/**/*",
+			"!vendor",
+			"!vendor/**/*",
+			"!.*",
+			"!composer.*",
+			"!gulpfile.*",
+			"!gulpconfig.*",
+			"!package*.*",
+			"!phpcs.*",
+			"!*.zip",
+		])
+		.pipe(gulp.dest(paths.theme + cfg.theme.slug))
+		.pipe(zip(cfg.theme.slug + ".zip"))
 		.pipe(gulp.dest(paths.theme));
 });
