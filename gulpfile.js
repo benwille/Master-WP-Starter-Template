@@ -56,6 +56,12 @@ gulp.task("php", function () {
 // gulp sass
 // Compiles SCSS files in CSS
 gulp.task("sass", function () {
+	gulp
+		.src(paths.dev + "/style.css")
+		.pipe(strreplace("understrap", cfg.theme.slug))
+		.pipe(strreplace("Understrap", cfg.theme.name))
+		.pipe(gulp.dest(paths.theme));
+
 	var stream = gulp
 		.src(paths.sass + "/*.scss")
 		.pipe(
@@ -70,6 +76,8 @@ gulp.task("sass", function () {
 		.pipe(sass({ errLogToConsole: true }))
 		.pipe(postcss([autoprefixer()]))
 		.pipe(sourcemaps.write(undefined, { sourceRoot: null }))
+		.pipe(strreplace("understrap", cfg.theme.slug))
+		.pipe(strreplace("Understrap", cfg.theme.name))
 		.pipe(gulp.dest(paths.css));
 	return stream;
 });
@@ -163,7 +171,10 @@ gulp.task("styles", function (callback) {
 
 gulp.task("purgecss", function () {
 	return gulp
-		.src([`${paths.css}/*.css`, `!${paths.css}/custom-editor-*.css`])
+		.src(
+			[`${paths.css}/*.css`, `!${paths.css}/custom-editor-*.css`],
+			`!${paths.css}/*.purged`
+		)
 		.pipe(
 			purgecss({
 				content: [
