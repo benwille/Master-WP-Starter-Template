@@ -45,7 +45,7 @@ gulp.task("php", function () {
 		)
 		.pipe(phpcs.reporter("log"))
 		.pipe(strreplace("understrap", cfg.theme.slug))
-		.pipe(strreplace("Understrap", cfg.theme.name))
+		.pipe(strreplace("UnderStrap", cfg.theme.name))
 		.pipe(strreplace("THEME_DEVELOPER_EMAIL", cfg.support.email))
 		.pipe(strreplace("THEME_SUPPORT_LINKS", cfg.support.links))
 		.pipe(strreplace("THEME_SUPPORT_NOTES", cfg.support.notes))
@@ -171,10 +171,11 @@ gulp.task("styles", function (callback) {
 
 gulp.task("purgecss", function () {
 	return gulp
-		.src(
-			[`${paths.css}/*.css`, `!${paths.css}/custom-editor-*.css`],
-			`!${paths.css}/*.purged`
-		)
+		.src([
+			`${paths.css}/*.css`,
+			`!${paths.css}/custom-editor-*.css`,
+			`!${paths.css}/*.purged.css`,
+		])
 		.pipe(
 			purgecss({
 				content: [
